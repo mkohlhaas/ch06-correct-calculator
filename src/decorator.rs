@@ -4,6 +4,7 @@
 
 use crate::expression::Expression;
 use std::collections::HashMap;
+use std::fmt::{self, Display};
 use std::time::Instant;
 
 // Logger trait for logging operations
@@ -48,8 +49,8 @@ impl Expression for LoggingExpression {
     }
 }
 
-impl std::fmt::Display for LoggingExpression {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl Display for LoggingExpression {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.inner)
     }
 }
@@ -79,8 +80,8 @@ impl Expression for TimingExpression {
     }
 }
 
-impl std::fmt::Display for TimingExpression {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl Display for TimingExpression {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.inner)
     }
 }
@@ -130,8 +131,8 @@ impl Expression for CachingExpression {
     }
 }
 
-impl std::fmt::Display for CachingExpression {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl Display for CachingExpression {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.inner)
     }
 }
@@ -174,8 +175,8 @@ impl Expression for RangeValidatingExpression {
     }
 }
 
-impl std::fmt::Display for RangeValidatingExpression {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl Display for RangeValidatingExpression {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
             "validate({}, min={}, max={})",

@@ -10,9 +10,10 @@
 
 use crate::token::{Function, Operator};
 use std::collections::HashMap;
+use std::fmt::{self, Display};
 
 // Expression trait defining common behavior
-pub trait Expression: std::fmt::Display {
+pub trait Expression: Display {
     fn evaluate(&self, variables: &HashMap<String, f64>) -> Result<f64, String>;
 
     // For debugging and visualization
@@ -39,8 +40,8 @@ impl Expression for NumberExpression {
     }
 }
 
-impl std::fmt::Display for NumberExpression {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl Display for NumberExpression {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.value)
     }
 }
@@ -66,8 +67,8 @@ impl Expression for VariableExpression {
     }
 }
 
-impl std::fmt::Display for VariableExpression {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl Display for VariableExpression {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.name)
     }
 }
@@ -117,8 +118,8 @@ impl Expression for BinaryOperation {
     }
 }
 
-impl std::fmt::Display for BinaryOperation {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl Display for BinaryOperation {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let left_str = if self.left.precedence() < self.precedence() {
             format!("({})", self.left)
         } else {
@@ -148,8 +149,8 @@ impl BinaryOperation {
 }
 
 // Manual implementation of Debug for BinaryOperation
-impl std::fmt::Debug for BinaryOperation {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl fmt::Debug for BinaryOperation {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
             "BinaryOperation {{ left: <expression>, operator: {:?}, right: <expression> }}",
@@ -172,8 +173,8 @@ impl FunctionCall {
 }
 
 // Manual implementation of Debug for FunctionCall
-impl std::fmt::Debug for FunctionCall {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl fmt::Debug for FunctionCall {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
             "FunctionCall {{ function: {:?}, argument: <expression> }}",
@@ -211,8 +212,8 @@ impl Expression for FunctionCall {
     }
 }
 
-impl std::fmt::Display for FunctionCall {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl Display for FunctionCall {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let func_name = match self.function {
             Function::Sin => "sin",
             Function::Cos => "cos",

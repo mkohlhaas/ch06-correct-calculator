@@ -6,6 +6,7 @@ use crate::config::AngleMode;
 use crate::expression::Expression;
 use std::collections::HashMap;
 use std::f64::consts::PI;
+use std::fmt::{self, Display};
 
 // Interface for scientific calculations
 pub trait ScientificOperations {
@@ -179,8 +180,8 @@ impl Expression for ScientificFunctionExpression {
     }
 }
 
-impl std::fmt::Display for ScientificFunctionExpression {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl Display for ScientificFunctionExpression {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}({})", self.description, self.arg_expression)
     }
 }
