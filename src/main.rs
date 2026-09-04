@@ -33,10 +33,10 @@ use std::{cell::RefCell, collections::HashMap};
 use token::{Function, Operator, Token};
 
 fn main() {
-    println!("Correct Calculator - Chapter 6 - Structural Patterns\n");
+    println!("Correct Calculator - Chapter 6 - Structural Patterns");
 
     // Demonstrate Composite Pattern
-    println!("\n== Composite Pattern ==");
+    println!("\n==================== Composite Pattern ====================\n");
     // Build an expression tree for: 2 + 3 * 4
     let multiply_expr = Box::new(BinaryOperation {
         left: Box::new(NumberExpression { value: 3.0 }),
@@ -76,7 +76,7 @@ fn main() {
     }
 
     // Demonstrate Decorator Pattern
-    println!("\n== Decorator Pattern ==");
+    println!("\n==================== Decorator Pattern ====================\n");
 
     // Create identical expressions for each decorator since we can't clone
     let add_for_logging = Box::new(BinaryOperation {
@@ -198,7 +198,7 @@ fn main() {
     }
 
     // Demonstrate Adapter Pattern
-    println!("\n== Adapter Pattern ==");
+    println!("\n==================== Adapter Pattern   ====================\n");
 
     // Create a standard scientific operations adapter
     let std_ops = StandardScientificOperations {
@@ -213,7 +213,7 @@ fn main() {
     println!("External sin(90°): {}", ext_ops.sin(90.0));
 
     // Demonstrate Facade Pattern
-    println!("\n== Facade Pattern ==");
+    println!("\n==================== Facade Pattern    ====================\n");
 
     // Create a calculator facade
     let mut calculator = CalculatorFacade::new(Box::new(std_ops), CalculatorConfig::default());
@@ -237,7 +237,7 @@ fn main() {
     }
 
     // Demonstrate Bridge Pattern
-    println!("\n== Bridge Pattern ==");
+    println!("\n==================== Bridge Pattern    ====================\n");
 
     // Create different low-level implementations
     let console_impl = Box::new(ConsoleDisplay);
@@ -250,7 +250,7 @@ fn main() {
     let json_display = CalculatorDisplay::new(json_impl);
 
     // Use the displays
-    println!("\nConsole display:");
+    println!("Console display:");
     console_display.show_result(14.0);
     console_display.show_error("Sample error");
     console_display.show_expression(&*add_expr);
@@ -266,7 +266,7 @@ fn main() {
     json_display.show_expression(&*add_expr);
 
     // Demonstrate the evaluation bridge
-    println!("\n== Evaluation Bridge ==");
+    println!("\n==================== Evaluation Bridge ====================\n");
 
     // Create evaluation strategies
     let standard_eval = Box::new(StandardEvaluator);
