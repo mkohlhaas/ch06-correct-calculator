@@ -214,6 +214,7 @@ impl ScientificOperations for ExpressionScientificAdapter {
         variables.insert("x".to_string(), angle);
 
         // Evaluate the sin expression with this variable
+        //  ⚠️ silently swallows error!
         self.sin_expr.evaluate(&variables).unwrap_or(0.0)
     }
 
@@ -221,6 +222,7 @@ impl ScientificOperations for ExpressionScientificAdapter {
         let mut variables = HashMap::new();
         variables.insert("x".to_string(), angle);
 
+        //  ⚠️ silently swallows error!
         self.cos_expr.evaluate(&variables).unwrap_or(0.0)
     }
 
@@ -228,6 +230,7 @@ impl ScientificOperations for ExpressionScientificAdapter {
         let mut variables = HashMap::new();
         variables.insert("x".to_string(), angle);
 
+        //  ⚠️ silently swallows error!
         self.tan_expr.evaluate(&variables).unwrap_or(0.0)
     }
 

@@ -172,6 +172,7 @@ impl EvaluationStrategy for OptimizingEvaluator {
         let result = expression.evaluate(variables)?;
 
         // Using RefCell for thread-safe interior mutability
+        // NOTE: RefCell is NOT thread-safe!
         self.cache.borrow_mut().insert(key, result);
 
         Ok(result)

@@ -12,10 +12,10 @@ use crate::token::{Function, Operator};
 use std::collections::HashMap;
 
 // Expression trait defining common behavior
-// NOTE: `to_string` should be the Display trait!
 pub trait Expression {
     fn evaluate(&self, variables: &HashMap<String, f64>) -> Result<f64, String>;
 
+    // NOTE: `to_string` should be the Display trait!
     fn to_string(&self) -> String;
 
     // For debugging and visualization
