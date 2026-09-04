@@ -29,7 +29,7 @@ use decorator::{
 use expression::{BinaryOperation, Expression, FunctionCall, NumberExpression, VariableExpression};
 use facade::CalculatorFacade;
 use std::f64::consts::PI;
-use std::{cell::RefCell, collections::HashMap};
+use std::collections::HashMap;
 use token::{Function, Operator, Token};
 
 fn main() {

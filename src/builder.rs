@@ -5,7 +5,7 @@
 use crate::token::{Operator, Token};
 
 #[derive(Debug, Clone)]
-pub struct Expression {
+pub struct TokenExpression {
     tokens: Vec<Token>,
 }
 
@@ -13,6 +13,12 @@ pub struct Expression {
 pub struct ExpressionBuilder {
     tokens: Vec<Token>,
     paren_count: i32, // Track parentheses balance
+}
+
+impl Default for ExpressionBuilder {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl ExpressionBuilder {
@@ -59,7 +65,7 @@ impl ExpressionBuilder {
     }
 
     // Build the final expression
-    pub fn build(self) -> Result<Expression, String> {
+    pub fn build(self) -> Result<TokenExpression, String> {
         if self.paren_count != 0 {
             return Err("Unmatched parentheses".to_string());
         }
@@ -71,7 +77,7 @@ impl ExpressionBuilder {
         // Validate the expression structure
         self.validate_expression()?;
 
-        Ok(Expression {
+        Ok(TokenExpression {
             tokens: self.tokens,
         })
     }
@@ -126,7 +132,7 @@ impl ExpressionBuilder {
 }
 
 // Template methods for common expressions
-impl Expression {
+impl TokenExpression {
     pub fn quadratic() -> ExpressionBuilder {
         ExpressionBuilder::new()
             .number(1.0) // Default a coefficient
@@ -249,7 +255,7 @@ mod tests {
 
     #[test]
     fn test_template_quadratic() {
-        let expr = Expression::quadratic().build().unwrap();
+        let expr = TokenExpression::quadratic().build().unwrap();
         assert!(!expr.tokens.is_empty());
     }
 
