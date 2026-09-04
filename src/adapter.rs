@@ -173,13 +173,15 @@ impl Expression for ScientificFunctionExpression {
         Ok((self.operation)(arg_value))
     }
 
-    fn to_string(&self) -> String {
-        format!("{}({})", self.description, self.arg_expression.to_string())
-    }
-
     fn precedence(&self) -> u8 {
         // Function calls have highest precedence
         4
+    }
+}
+
+impl std::fmt::Display for ScientificFunctionExpression {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}({})", self.description, self.arg_expression)
     }
 }
 
@@ -240,5 +242,159 @@ impl ScientificOperations for ExpressionScientificAdapter {
         variables.insert("base".to_string(), base);
 
         self.log_expr.evaluate(&variables)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn vars(x: f64) -> HashMap<String, f64> {
+        let mut m = HashMap::new();
+        m.insert("x".to_string(), x);
+        m
+    }
+
+    #[test]
+    fn test_standard_sin_radians() {
+        let ops = StandardScientificOperations {
+            angle_mode: AngleMode::Radians,
+        };
+        assert!((ops.sin(PI / 2.0) - 1.0).abs() < 1e-10);
+        assert!((ops.sin(0.0)).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_standard_sin_degrees() {
+        let ops = StandardScientificOperations {
+            angle_mode: AngleMode::Degrees,
+        };
+        assert!((ops.sin(90.0) - 1.0).abs() < 1e-10);
+        assert!((ops.sin(0.0)).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_standard_cos_radians() {
+        let ops = StandardScientificOperations {
+            angle_mode: AngleMode::Radians,
+        };
+        assert!((ops.cos(0.0) - 1.0).abs() < 1e-10);
+        assert!((ops.cos(PI) + 1.0).abs() < 1e-10); // cos(π) ≈ -1
+    }
+
+    #[test]
+    fn test_standard_cos_degrees() {
+        let ops = StandardScientificOperations {
+            angle_mode: AngleMode::Degrees,
+        };
+        assert!((ops.cos(0.0) - 1.0).abs() < 1e-10);
+        assert!((ops.cos(180.0) + 1.0).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_standard_tan() {
+        let ops = StandardScientificOperations {
+            angle_mode: AngleMode::Radians,
+        };
+        assert!((ops.tan(0.0)).abs() < 1e-10);
+        assert!((ops.tan(PI / 4.0) - 1.0).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_standard_log() {
+        let ops = StandardScientificOperations {
+            angle_mode: AngleMode::Radians,
+        };
+        let result = ops.log(100.0, 10.0).unwrap();
+        assert!((result - 2.0).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_standard_log_invalid_value() {
+        let ops = StandardScientificOperations {
+            angle_mode: AngleMode::Radians,
+        };
+        assert!(ops.log(0.0, 10.0).is_err());
+        assert!(ops.log(-1.0, 10.0).is_err());
+    }
+
+    #[test]
+    fn test_standard_log_invalid_base() {
+        let ops = StandardScientificOperations {
+            angle_mode: AngleMode::Radians,
+        };
+        assert!(ops.log(10.0, 0.0).is_err());
+        assert!(ops.log(10.0, 1.0).is_err());
+    }
+
+    #[test]
+    fn test_external_adapter_sin_radians() {
+        let ops = ExternalLibraryAdapter::new(AngleMode::Radians);
+        assert!((ops.sin(PI / 2.0) - 1.0).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_external_adapter_sin_degrees() {
+        let ops = ExternalLibraryAdapter::new(AngleMode::Degrees);
+        assert!((ops.sin(90.0) - 1.0).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_scientific_function_expression() {
+        let ops = Box::new(StandardScientificOperations {
+            angle_mode: AngleMode::Radians,
+        });
+        let expr = ScientificFunctionExpression::new_sin(ops, Box::new(
+            crate::expression::VariableExpression::new("x"),
+        ));
+        let result = expr.evaluate(&vars(PI / 2.0)).unwrap();
+        assert!((result - 1.0).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_scientific_function_expression_display() {
+        let ops = Box::new(StandardScientificOperations {
+            angle_mode: AngleMode::Radians,
+        });
+        let expr = ScientificFunctionExpression::new_sin(ops, Box::new(
+            crate::expression::VariableExpression::new("x"),
+        ));
+        assert_eq!(format!("{}", expr), "sin(x)");
+    }
+
+    #[test]
+    fn test_expression_scientific_adapter() {
+        use crate::expression::{BinaryOperation, FunctionCall, NumberExpression};
+        use crate::token::{Function, Operator};
+
+        let sin_x = Box::new(FunctionCall::new(
+            Function::Sin,
+            Box::new(crate::expression::VariableExpression::new("x")),
+        ));
+        let cos_x = Box::new(FunctionCall::new(
+            Function::Cos,
+            Box::new(crate::expression::VariableExpression::new("x")),
+        ));
+        let tan_x = Box::new(FunctionCall::new(
+            Function::Tan,
+            Box::new(crate::expression::VariableExpression::new("x")),
+        ));
+        // log(x, base) = ln(x)/ln(base) -- express as a binary op
+        let log_x = Box::new(BinaryOperation::new(
+            Box::new(FunctionCall::new(
+                Function::Sqrt,
+                Box::new(crate::expression::NumberExpression::new(100.0)),
+            )),
+            Box::new(NumberExpression::new(2.0)),
+            Operator::Divide,
+        ));
+
+        let adapter = ExpressionScientificAdapter::new(sin_x, cos_x, tan_x, log_x);
+        assert!((adapter.sin(PI / 2.0) - 1.0).abs() < 1e-10);
+        assert!((adapter.cos(0.0) - 1.0).abs() < 1e-10);
+        assert!((adapter.tan(0.0)).abs() < 1e-10);
+        // log_expr is sqrt(100)/2 = 5.0
+        let result = adapter.log(10.0, 2.0).unwrap();
+        assert!((result - 5.0).abs() < 1e-10);
     }
 }

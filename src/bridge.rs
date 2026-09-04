@@ -105,7 +105,7 @@ impl Display for CalculatorDisplay {
 
     fn show_expression(&self, expression: &dyn Expression) {
         self.implementation
-            .display_text(&format!("Expression: {}", expression.to_string()));
+            .display_text(&format!("Expression: {}", expression));
     }
 }
 
@@ -200,5 +200,118 @@ impl Evaluator {
 
     pub fn change_strategy(&mut self, strategy: Box<dyn EvaluationStrategy>) {
         self.strategy = strategy;
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::expression::{BinaryOperation, NumberExpression};
+    use crate::token::Operator;
+
+    fn empty_vars() -> std::collections::HashMap<String, f64> {
+        std::collections::HashMap::new()
+    }
+
+    fn make_add_expr() -> Box<dyn Expression> {
+        Box::new(BinaryOperation::new(
+            Box::new(NumberExpression::new(2.0)),
+            Box::new(NumberExpression::new(3.0)),
+            Operator::Add,
+        ))
+    }
+
+    #[test]
+    fn test_standard_evaluator() {
+        let evaluator = Evaluator::new(Box::new(StandardEvaluator));
+        let expr = make_add_expr();
+        let result = evaluator.evaluate(&*expr, &empty_vars()).unwrap();
+        assert_eq!(result, 5.0);
+    }
+
+    #[test]
+    fn test_optimizing_evaluator_first_call() {
+        let evaluator = Evaluator::new(Box::new(OptimizingEvaluator::new()));
+        let expr = make_add_expr();
+        let result = evaluator.evaluate(&*expr, &empty_vars()).unwrap();
+        assert_eq!(result, 5.0);
+    }
+
+    #[test]
+    fn test_optimizing_evaluator_cached() {
+        let evaluator = Evaluator::new(Box::new(OptimizingEvaluator::new()));
+        let expr = make_add_expr();
+        let r1 = evaluator.evaluate(&*expr, &empty_vars()).unwrap();
+        let r2 = evaluator.evaluate(&*expr, &empty_vars()).unwrap();
+        assert_eq!(r1, r2);
+        assert_eq!(r1, 5.0);
+    }
+
+    #[test]
+    fn test_change_strategy() {
+        let mut evaluator = Evaluator::new(Box::new(StandardEvaluator));
+        let expr = make_add_expr();
+        assert_eq!(evaluator.evaluate(&*expr, &empty_vars()).unwrap(), 5.0);
+
+        evaluator.change_strategy(Box::new(OptimizingEvaluator::new()));
+        assert_eq!(evaluator.evaluate(&*expr, &empty_vars()).unwrap(), 5.0);
+    }
+
+    #[test]
+    fn test_optimizing_evaluator_wrong_cache() {
+        // This tests that the cache key uses variable count, so different var counts = different entries
+        let evaluator = Evaluator::new(Box::new(OptimizingEvaluator::new()));
+        let expr = make_add_expr();
+        let r1 = evaluator.evaluate(&*expr, &empty_vars()).unwrap();
+
+        let mut vars = empty_vars();
+        vars.insert("x".to_string(), 999.0);
+        let r2 = evaluator.evaluate(&*expr, &vars).unwrap();
+        assert_eq!(r1, 5.0);
+        assert_eq!(r2, 5.0);
+    }
+
+    // Display bridge tests - these just test that the display impls don't panic
+    #[test]
+    fn test_console_display_result() {
+        let display = CalculatorDisplay::new(Box::new(ConsoleDisplay));
+        display.show_result(42.0);
+    }
+
+    #[test]
+    fn test_console_display_error() {
+        let display = CalculatorDisplay::new(Box::new(ConsoleDisplay));
+        display.show_error("test error");
+    }
+
+    #[test]
+    fn test_console_display_expression() {
+        let display = CalculatorDisplay::new(Box::new(ConsoleDisplay));
+        let expr = make_add_expr();
+        display.show_expression(&*expr);
+    }
+
+    #[test]
+    fn test_html_display_result() {
+        let display = CalculatorDisplay::new(Box::new(HtmlDisplay));
+        display.show_result(42.0);
+    }
+
+    #[test]
+    fn test_html_display_error() {
+        let display = CalculatorDisplay::new(Box::new(HtmlDisplay));
+        display.show_error("test error");
+    }
+
+    #[test]
+    fn test_json_display_result() {
+        let display = CalculatorDisplay::new(Box::new(JsonDisplay));
+        display.show_result(42.0);
+    }
+
+    #[test]
+    fn test_json_display_error() {
+        let display = CalculatorDisplay::new(Box::new(JsonDisplay));
+        display.show_error("test error");
     }
 }

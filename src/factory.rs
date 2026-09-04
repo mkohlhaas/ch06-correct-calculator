@@ -181,3 +181,116 @@ impl TokenFactory for ScientificFactory {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // Standard factory tests
+    #[test]
+    fn test_standard_factory_create_number() {
+        let factory = StandardFactory;
+        let num = factory.create_number("42").unwrap();
+        assert_eq!(num.value(), 42.0);
+    }
+
+    #[test]
+    fn test_standard_factory_create_number_invalid() {
+        let factory = StandardFactory;
+        assert!(factory.create_number("abc").is_err());
+    }
+
+    #[test]
+    fn test_standard_factory_create_operators() {
+        let factory = StandardFactory;
+        assert_eq!(factory.create_operator("+").unwrap().symbol(), "+");
+        assert_eq!(factory.create_operator("-").unwrap().symbol(), "-");
+        assert_eq!(factory.create_operator("*").unwrap().symbol(), "*");
+        assert_eq!(factory.create_operator("/").unwrap().symbol(), "/");
+        assert_eq!(factory.create_operator("^").unwrap().symbol(), "^");
+    }
+
+    #[test]
+    fn test_standard_factory_create_operator_invalid() {
+        let factory = StandardFactory;
+        assert!(factory.create_operator("sin").is_err());
+    }
+
+    #[test]
+    fn test_standard_operator_precedence() {
+        let add = StandardFactory.create_operator("+").unwrap();
+        let mul = StandardFactory.create_operator("*").unwrap();
+        let pow = StandardFactory.create_operator("^").unwrap();
+        assert!(add.precedence() < mul.precedence());
+        assert!(mul.precedence() < pow.precedence());
+    }
+
+    #[test]
+    fn test_standard_number_format() {
+        let factory = StandardFactory;
+        let num = factory.create_number("42.5").unwrap();
+        assert_eq!(num.format(), "42.5");
+    }
+
+    // Scientific factory tests
+    #[test]
+    fn test_scientific_factory_create_number() {
+        let factory = ScientificFactory;
+        let num = factory.create_number("42").unwrap();
+        assert_eq!(num.value(), 42.0);
+    }
+
+    #[test]
+    fn test_scientific_factory_create_number_invalid() {
+        let factory = ScientificFactory;
+        assert!(factory.create_number("xyz").is_err());
+    }
+
+    #[test]
+    fn test_scientific_factory_create_operators() {
+        let factory = ScientificFactory;
+        assert_eq!(factory.create_operator("+").unwrap().symbol(), "+");
+        assert_eq!(factory.create_operator("-").unwrap().symbol(), "-");
+        assert_eq!(factory.create_operator("*").unwrap().symbol(), "*");
+        assert_eq!(factory.create_operator("/").unwrap().symbol(), "/");
+        assert_eq!(factory.create_operator("^").unwrap().symbol(), "^");
+    }
+
+    #[test]
+    fn test_scientific_factory_create_functions() {
+        let factory = ScientificFactory;
+        assert_eq!(factory.create_operator("sin").unwrap().symbol(), "sin");
+        assert_eq!(factory.create_operator("cos").unwrap().symbol(), "cos");
+        assert_eq!(factory.create_operator("tan").unwrap().symbol(), "tan");
+        assert_eq!(factory.create_operator("sqrt").unwrap().symbol(), "sqrt");
+    }
+
+    #[test]
+    fn test_scientific_factory_create_invalid_operator() {
+        let factory = ScientificFactory;
+        assert!(factory.create_operator("log").is_err());
+    }
+
+    #[test]
+    fn test_scientific_number_format_default() {
+        let factory = ScientificFactory;
+        let num = factory.create_number("42.5").unwrap();
+        // ScientificNumber formats decimals in scientific notation by default
+        assert!(num.format().contains("e"));
+    }
+
+    #[test]
+    fn test_scientific_number_format_scientific_input() {
+        let factory = ScientificFactory;
+        let num = factory.create_number("1e5").unwrap();
+        assert!(num.format().contains("e"));
+    }
+
+    #[test]
+    fn test_scientific_operator_precedence_functions() {
+        let factory = ScientificFactory;
+        let add = factory.create_operator("+").unwrap();
+        let sin = factory.create_operator("sin").unwrap();
+        assert!(add.precedence() < sin.precedence());
+    }
+}

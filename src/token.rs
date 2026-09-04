@@ -132,3 +132,96 @@ impl Token {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_number_format_decimal() {
+        let num = Number::new(42.5);
+        assert_eq!(num.value, 42.5);
+        assert_eq!(num.format, NumberFormat::Decimal);
+        assert_eq!(num.format(), "42.5");
+    }
+
+    #[test]
+    fn test_number_format_scientific() {
+        let num = Number::with_format(1234.0, NumberFormat::Scientific);
+        assert_eq!(num.format(), "1.234e3");
+    }
+
+    #[test]
+    fn test_number_format_engineering() {
+        let num = Number::with_format(1500.0, NumberFormat::Engineering);
+        assert_eq!(num.format(), "1.5e3");
+    }
+
+    #[test]
+    fn test_token_from_str_number() {
+        let tok = Token::from_str("42").unwrap();
+        assert!(matches!(tok, Token::Number(n) if n.value == 42.0));
+    }
+
+    #[test]
+    fn test_token_from_str_scientific() {
+        let tok = Token::from_str("1e5").unwrap();
+        assert!(matches!(tok, Token::Number(Number { value, format: NumberFormat::Scientific }) if value == 1e5));
+    }
+
+    #[test]
+    fn test_token_from_str_operators() {
+        assert!(matches!(Token::from_str("+").unwrap(), Token::Operator(Operator::Add)));
+        assert!(matches!(Token::from_str("-").unwrap(), Token::Operator(Operator::Subtract)));
+        assert!(matches!(Token::from_str("*").unwrap(), Token::Operator(Operator::Multiply)));
+        assert!(matches!(Token::from_str("/").unwrap(), Token::Operator(Operator::Divide)));
+        assert!(matches!(Token::from_str("^").unwrap(), Token::Operator(Operator::Power)));
+    }
+
+    #[test]
+    fn test_token_from_str_functions() {
+        assert!(matches!(Token::from_str("sin").unwrap(), Token::Function(Function::Sin)));
+        assert!(matches!(Token::from_str("cos").unwrap(), Token::Function(Function::Cos)));
+        assert!(matches!(Token::from_str("tan").unwrap(), Token::Function(Function::Tan)));
+        assert!(matches!(Token::from_str("sqrt").unwrap(), Token::Function(Function::Sqrt)));
+    }
+
+    #[test]
+    fn test_token_from_str_parens() {
+        assert!(matches!(Token::from_str("(").unwrap(), Token::OpenParen));
+        assert!(matches!(Token::from_str(")").unwrap(), Token::CloseParen));
+    }
+
+    #[test]
+    fn test_token_from_str_variable() {
+        let tok = Token::from_str("x").unwrap();
+        assert!(matches!(tok, Token::Variable(name) if name == "x"));
+
+        let tok = Token::from_str("_abc123").unwrap();
+        assert!(matches!(tok, Token::Variable(name) if name == "_abc123"));
+    }
+
+    #[test]
+    fn test_token_from_str_invalid() {
+        assert!(Token::from_str("@").is_err());
+        assert!(Token::from_str("!").is_err());
+    }
+
+    #[test]
+    fn test_token_factories() {
+        let t = Token::number(3.14);
+        assert!(matches!(t, Token::Number(n) if n.value == 3.14));
+
+        let t = Token::scientific_number(100.0);
+        assert!(matches!(t, Token::Number(Number { format: NumberFormat::Scientific, .. })));
+
+        let t = Token::operator(Operator::Add);
+        assert!(matches!(t, Token::Operator(Operator::Add)));
+
+        let t = Token::function(Function::Sqrt);
+        assert!(matches!(t, Token::Function(Function::Sqrt)));
+
+        let t = Token::variable("my_var");
+        assert!(matches!(t, Token::Variable(name) if name == "my_var"));
+    }
+}

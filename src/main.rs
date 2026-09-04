@@ -52,7 +52,7 @@ fn main() {
 
     // Evaluate the expression
     let variables = HashMap::new();
-    println!("Expression: {}", add_expr.to_string());
+    println!("Expression: {}", add_expr);
     match add_expr.evaluate(&variables) {
         Ok(result) => println!("Result: {}", result),
         Err(e) => println!("Error: {}", e),
@@ -69,7 +69,7 @@ fn main() {
     let mut var_map = HashMap::new();
     var_map.insert("x".to_string(), PI);
 
-    println!("\nExpression: {}", sin_expr.to_string());
+    println!("\nExpression: {}", sin_expr);
     match sin_expr.evaluate(&var_map) {
         Ok(result) => println!("Result: {}", result),
         Err(e) => println!("Error: {}", e),

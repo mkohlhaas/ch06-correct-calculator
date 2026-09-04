@@ -83,3 +83,79 @@ impl CalculatorPool {
         Arc::clone(&self.shared_config)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_default_config() {
+        let config = CalculatorConfig::default();
+        assert_eq!(config.precision, 10);
+        assert!(matches!(config.angle_mode, AngleMode::Radians));
+        assert!(matches!(config.notation, NumberFormat::Decimal));
+    }
+
+    #[test]
+    fn test_scientific_config() {
+        let config = CalculatorConfig::scientific();
+        assert_eq!(config.precision, 15);
+        assert!(matches!(config.angle_mode, AngleMode::Radians));
+        assert!(matches!(config.notation, NumberFormat::Scientific));
+    }
+
+    #[test]
+    fn test_engineering_config() {
+        let config = CalculatorConfig::engineering();
+        assert!(matches!(config.notation, NumberFormat::Engineering));
+        // Should inherit defaults for other fields
+        assert_eq!(config.precision, 10);
+        assert!(matches!(config.angle_mode, AngleMode::Radians));
+    }
+
+    #[test]
+    fn test_config_clone() {
+        let config = CalculatorConfig::default();
+        let cloned = config.clone();
+        assert_eq!(cloned.precision, config.precision);
+    }
+
+    #[test]
+    fn test_global_config_returns_same_instance() {
+        let a = get_global_config();
+        let b = get_global_config();
+        // Both should point to the same static instance
+        let a_ptr = a as *const CalculatorConfig;
+        let b_ptr = b as *const CalculatorConfig;
+        assert_eq!(a_ptr, b_ptr);
+    }
+
+    #[test]
+    fn test_global_config_is_default() {
+        let config = get_global_config();
+        assert_eq!(config.precision, 10);
+        assert!(matches!(config.angle_mode, AngleMode::Radians));
+    }
+
+    #[test]
+    fn test_calculator_pool_shares_config() {
+        let config = CalculatorConfig::default();
+        let pool = CalculatorPool::new(config);
+        let shared = pool.get_config();
+        assert_eq!(shared.precision, 10);
+    }
+
+    #[test]
+    fn test_calculator_pool_multiple_gets() {
+        let pool = CalculatorPool::new(CalculatorConfig::scientific());
+        let a = pool.get_config();
+        let b = pool.get_config();
+        assert_eq!(a.precision, b.precision);
+    }
+
+    #[test]
+    fn test_angle_mode_debug() {
+        assert_eq!(format!("{:?}", AngleMode::Degrees), "Degrees");
+        assert_eq!(format!("{:?}", AngleMode::Radians), "Radians");
+    }
+}

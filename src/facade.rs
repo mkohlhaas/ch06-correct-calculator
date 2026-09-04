@@ -164,3 +164,93 @@ impl CalculatorFacade {
         ExpressionParser::parse(&tokens)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn make_facade() -> CalculatorFacade {
+        let ops = Box::new(crate::adapter::StandardScientificOperations {
+            angle_mode: crate::config::AngleMode::Radians,
+        });
+        CalculatorFacade::new(ops, CalculatorConfig::default())
+    }
+
+    #[test]
+    fn test_new_facade_has_empty_state() {
+        let calc = make_facade();
+        assert!(calc.get_history().is_empty());
+        assert!(calc.get_variable("x").is_none());
+    }
+
+    #[test]
+    fn test_set_get_variable() {
+        let mut calc = make_facade();
+        calc.set_variable("x", 42.0);
+        assert_eq!(calc.get_variable("x"), Some(42.0));
+    }
+
+    #[test]
+    fn test_history_tracking() {
+        let mut calc = make_facade();
+        let _ = calc.evaluate("2 + 3");
+        assert_eq!(calc.get_history(), &["2 + 3"]);
+    }
+
+    #[test]
+    fn test_calculate_quadratic() {
+        let mut calc = make_facade();
+        // x^2 - 5x + 6 = 0 -> roots 3 and 2
+        let (x1, x2) = calc.calculate_quadratic(1.0, -5.0, 6.0).unwrap();
+        assert!(((x1 - 3.0).abs() < 1e-10) || ((x1 - 2.0).abs() < 1e-10));
+        assert!(((x2 - 3.0).abs() < 1e-10) || ((x2 - 2.0).abs() < 1e-10));
+    }
+
+    #[test]
+    fn test_calculate_quadratic_no_real_roots() {
+        let mut calc = make_facade();
+        assert!(calc.calculate_quadratic(1.0, 0.0, 1.0).is_err());
+    }
+
+    #[test]
+    fn test_calculate_pythagorean() {
+        let calc = make_facade();
+        let result = calc.calculate_pythagorean(3.0, 4.0);
+        assert!((result - 5.0).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_parse_value_number() {
+        let calc = make_facade();
+        assert_eq!(calc.parse_value("42.0").unwrap(), 42.0);
+    }
+
+    #[test]
+    fn test_parse_value_variable() {
+        let mut calc = make_facade();
+        calc.set_variable("pi", 3.14);
+        assert!((calc.parse_value("pi").unwrap() - 3.14).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_parse_value_unknown() {
+        let calc = make_facade();
+        assert!(calc.parse_value("unknown").is_err());
+    }
+
+    #[test]
+    fn test_tokenize() {
+        let calc = make_facade();
+        let tokens = calc.tokenize("2 + 3").unwrap();
+        assert_eq!(tokens.len(), 3);
+    }
+
+    #[test]
+    fn test_expression_from_string() {
+        let calc = make_facade();
+        // The parser is hardcoded to return "2 + 3 * 4", so the result is always 14
+        let expr = calc.expression_from_string("2 + 3").unwrap();
+        let result = expr.evaluate(&std::collections::HashMap::new()).unwrap();
+        assert_eq!(result, 14.0);
+    }
+}

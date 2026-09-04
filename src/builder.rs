@@ -9,6 +9,7 @@ pub struct Expression {
     tokens: Vec<Token>,
 }
 
+#[derive(Debug)]
 pub struct ExpressionBuilder {
     tokens: Vec<Token>,
     paren_count: i32, // Track parentheses balance
@@ -139,5 +140,129 @@ impl Expression {
             .variable("x")
             .operator(Operator::Add)
             .number(0.0) // Default c coefficient
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_builder_number() {
+        let expr = ExpressionBuilder::new().number(42.0).build().unwrap();
+        assert_eq!(expr.tokens.len(), 1);
+    }
+
+    #[test]
+    fn test_builder_operator() {
+        let expr = ExpressionBuilder::new()
+            .number(1.0)
+            .operator(Operator::Add)
+            .number(2.0)
+            .build()
+            .unwrap();
+        assert_eq!(expr.tokens.len(), 3);
+    }
+
+    #[test]
+    fn test_builder_variable() {
+        let expr = ExpressionBuilder::new()
+            .variable("x")
+            .build()
+            .unwrap();
+        assert_eq!(expr.tokens.len(), 1);
+    }
+
+    #[test]
+    fn test_builder_binary_op() {
+        let expr = ExpressionBuilder::new()
+            .binary_op(1.0, Operator::Multiply, 2.0)
+            .build()
+            .unwrap();
+        assert_eq!(expr.tokens.len(), 3);
+    }
+
+    #[test]
+    fn test_builder_parentheses() {
+        let expr = ExpressionBuilder::new()
+            .open_paren()
+            .number(1.0)
+            .operator(Operator::Add)
+            .number(2.0)
+            .close_paren()
+            .unwrap()
+            .build()
+            .unwrap();
+        assert_eq!(expr.tokens.len(), 5);
+    }
+
+    #[test]
+    fn test_builder_unmatched_close_paren() {
+        let result = ExpressionBuilder::new().close_paren();
+        assert!(result.is_err());
+        assert_eq!(
+            result.unwrap_err(),
+            "Unmatched closing parenthesis"
+        );
+    }
+
+    #[test]
+    fn test_builder_unmatched_open_parens() {
+        let result = ExpressionBuilder::new()
+            .open_paren()
+            .number(1.0)
+            .build();
+        assert!(result.is_err());
+        assert_eq!(result.unwrap_err(), "Unmatched parentheses");
+    }
+
+    #[test]
+    fn test_builder_empty_expression() {
+        let result = ExpressionBuilder::new().build();
+        assert!(result.is_err());
+        assert_eq!(result.unwrap_err(), "Empty expression");
+    }
+
+    #[test]
+    fn test_builder_consecutive_operators() {
+        let result = ExpressionBuilder::new()
+            .number(1.0)
+            .operator(Operator::Add)
+            .operator(Operator::Multiply)
+            .number(2.0)
+            .build();
+        assert!(result.is_err());
+        assert_eq!(
+            result.unwrap_err(),
+            "Consecutive operators not allowed"
+        );
+    }
+
+    #[test]
+    fn test_builder_function_call() {
+        let expr = ExpressionBuilder::new()
+            .function_call(crate::token::Function::Sin, "x")
+            .build()
+            .unwrap();
+        assert_eq!(expr.tokens.len(), 4); // sin, (, x, )
+    }
+
+    #[test]
+    fn test_template_quadratic() {
+        let expr = Expression::quadratic().build().unwrap();
+        assert!(!expr.tokens.is_empty());
+    }
+
+    #[test]
+    fn test_builder_chain() {
+        let expr = ExpressionBuilder::new()
+            .number(2.0)
+            .operator(Operator::Add)
+            .number(3.0)
+            .operator(Operator::Multiply)
+            .number(4.0)
+            .build()
+            .unwrap();
+        assert_eq!(expr.tokens.len(), 5);
     }
 }

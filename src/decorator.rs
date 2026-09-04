@@ -34,7 +34,7 @@ impl LoggingExpression {
 impl Expression for LoggingExpression {
     fn evaluate(&self, variables: &HashMap<String, f64>) -> Result<f64, String> {
         self.logger
-            .log(&format!("Evaluating: {}", self.inner.to_string()));
+            .log(&format!("Evaluating: {}", self.inner));
         let result = self.inner.evaluate(variables);
         match &result {
             Ok(value) => self.logger.log(&format!("Result: {}", value)),
@@ -43,12 +43,14 @@ impl Expression for LoggingExpression {
         result
     }
 
-    fn to_string(&self) -> String {
-        self.inner.to_string()
-    }
-
     fn precedence(&self) -> u8 {
         self.inner.precedence()
+    }
+}
+
+impl std::fmt::Display for LoggingExpression {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.inner)
     }
 }
 
@@ -72,12 +74,14 @@ impl Expression for TimingExpression {
         result
     }
 
-    fn to_string(&self) -> String {
-        self.inner.to_string()
-    }
-
     fn precedence(&self) -> u8 {
         self.inner.precedence()
+    }
+}
+
+impl std::fmt::Display for TimingExpression {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.inner)
     }
 }
 
@@ -121,12 +125,14 @@ impl Expression for CachingExpression {
         Ok(result)
     }
 
-    fn to_string(&self) -> String {
-        self.inner.to_string()
-    }
-
     fn precedence(&self) -> u8 {
         self.inner.precedence()
+    }
+}
+
+impl std::fmt::Display for CachingExpression {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.inner)
     }
 }
 
@@ -163,16 +169,155 @@ impl Expression for RangeValidatingExpression {
         }
     }
 
-    fn to_string(&self) -> String {
-        format!(
-            "validate({}, min={}, max={})",
-            self.inner.to_string(),
-            self.min,
-            self.max
-        )
-    }
-
     fn precedence(&self) -> u8 {
         self.inner.precedence()
+    }
+}
+
+impl std::fmt::Display for RangeValidatingExpression {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "validate({}, min={}, max={})",
+            self.inner, self.min, self.max
+        )
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::expression::NumberExpression;
+
+    fn empty_vars() -> HashMap<String, f64> {
+        HashMap::new()
+    }
+
+    fn make_number(val: f64) -> Box<dyn Expression> {
+        Box::new(NumberExpression::new(val))
+    }
+
+    #[test]
+    fn test_logging_expression_evaluate() {
+        let inner = make_number(42.0);
+        let expr = LoggingExpression::new(inner, Box::new(ConsoleLogger));
+        let result = expr.evaluate(&empty_vars()).unwrap();
+        assert_eq!(result, 42.0);
+    }
+
+    #[test]
+    fn test_logging_expression_display() {
+        let inner = make_number(42.0);
+        let expr = LoggingExpression::new(inner, Box::new(ConsoleLogger));
+        assert_eq!(format!("{}", expr), "42");
+    }
+
+    #[test]
+    fn test_timing_expression_evaluate() {
+        let inner = make_number(7.0);
+        let expr = TimingExpression::new(inner);
+        let result = expr.evaluate(&empty_vars()).unwrap();
+        assert_eq!(result, 7.0);
+    }
+
+    #[test]
+    fn test_timing_expression_display() {
+        let inner = make_number(7.0);
+        let expr = TimingExpression::new(inner);
+        assert_eq!(format!("{}", expr), "7");
+    }
+
+    #[test]
+    fn test_caching_expression_first_call() {
+        let inner = make_number(99.0);
+        let expr = CachingExpression::new(inner);
+        let result = expr.evaluate(&empty_vars()).unwrap();
+        assert_eq!(result, 99.0);
+    }
+
+    #[test]
+    fn test_caching_expression_second_call_uses_cache() {
+        let inner = make_number(99.0);
+        let expr = CachingExpression::new(inner);
+        let _ = expr.evaluate(&empty_vars()).unwrap();
+        // Second call should hit cache
+        let result = expr.evaluate(&empty_vars()).unwrap();
+        assert_eq!(result, 99.0);
+    }
+
+    #[test]
+    fn test_caching_expression_display() {
+        let inner = make_number(99.0);
+        let expr = CachingExpression::new(inner);
+        assert_eq!(format!("{}", expr), "99");
+    }
+
+    #[test]
+    fn test_caching_expression_invalidates() {
+        let inner = make_number(5.0);
+        let expr = CachingExpression::new(inner);
+        let _ = expr.evaluate(&empty_vars()).unwrap();
+        expr.invalidate_cache();
+        // Should re-evaluate (but same result)
+        let result = expr.evaluate(&empty_vars()).unwrap();
+        assert_eq!(result, 5.0);
+    }
+
+    #[test]
+    fn test_range_validating_in_range() {
+        let inner = make_number(15.0);
+        let expr = RangeValidatingExpression::new(inner, 10.0, 20.0);
+        assert_eq!(expr.evaluate(&empty_vars()).unwrap(), 15.0);
+    }
+
+    #[test]
+    fn test_range_validating_below_min() {
+        let inner = make_number(5.0);
+        let expr = RangeValidatingExpression::new(inner, 10.0, 20.0);
+        assert!(expr.evaluate(&empty_vars()).is_err());
+    }
+
+    #[test]
+    fn test_range_validating_above_max() {
+        let inner = make_number(25.0);
+        let expr = RangeValidatingExpression::new(inner, 10.0, 20.0);
+        assert!(expr.evaluate(&empty_vars()).is_err());
+    }
+
+    #[test]
+    fn test_range_validating_boundary() {
+        let inner = make_number(10.0);
+        let expr = RangeValidatingExpression::new(inner, 10.0, 20.0);
+        assert_eq!(expr.evaluate(&empty_vars()).unwrap(), 10.0);
+
+        let inner = make_number(20.0);
+        let expr = RangeValidatingExpression::new(inner, 10.0, 20.0);
+        assert_eq!(expr.evaluate(&empty_vars()).unwrap(), 20.0);
+    }
+
+    #[test]
+    fn test_range_validating_display() {
+        let inner = make_number(15.0);
+        let expr = RangeValidatingExpression::new(inner, 10.0, 20.0);
+        assert_eq!(format!("{}", expr), "validate(15, min=10, max=20)");
+    }
+
+    #[test]
+    fn test_stacked_decorators() {
+        // Caching -> RangeValidating -> Logging
+        let inner = make_number(42.0);
+        let cached = Box::new(CachingExpression::new(inner));
+        let validated = Box::new(RangeValidatingExpression::new(cached, 0.0, 100.0));
+        let logged = LoggingExpression::new(validated, Box::new(ConsoleLogger));
+        let result = logged.evaluate(&empty_vars()).unwrap();
+        assert_eq!(result, 42.0);
+    }
+
+    #[test]
+    fn test_stacked_decorators_out_of_range() {
+        let inner = make_number(200.0);
+        let validated = Box::new(RangeValidatingExpression::new(inner, 0.0, 100.0));
+        let logged = LoggingExpression::new(validated, Box::new(ConsoleLogger));
+        assert!(logged.evaluate(&empty_vars()).is_err());
     }
 }
