@@ -345,9 +345,10 @@ mod tests {
         let ops = Box::new(StandardScientificOperations {
             angle_mode: AngleMode::Radians,
         });
-        let expr = ScientificFunctionExpression::new_sin(ops, Box::new(
-            crate::expression::VariableExpression::new("x"),
-        ));
+        let expr = ScientificFunctionExpression::new_sin(
+            ops,
+            Box::new(crate::expression::VariableExpression::new("x")),
+        );
         let result = expr.evaluate(&vars(PI / 2.0)).unwrap();
         assert!((result - 1.0).abs() < 1e-10);
     }
@@ -357,9 +358,10 @@ mod tests {
         let ops = Box::new(StandardScientificOperations {
             angle_mode: AngleMode::Radians,
         });
-        let expr = ScientificFunctionExpression::new_sin(ops, Box::new(
-            crate::expression::VariableExpression::new("x"),
-        ));
+        let expr = ScientificFunctionExpression::new_sin(
+            ops,
+            Box::new(crate::expression::VariableExpression::new("x")),
+        );
         assert_eq!(format!("{}", expr), "sin(x)");
     }
 

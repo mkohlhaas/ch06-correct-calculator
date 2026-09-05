@@ -48,11 +48,16 @@ fn main() {
         operator: Operator::Add,
     });
 
+    let variables = HashMap::new();
+
+    // ================= //
+    // Composite Pattern //
+    // ================= //
+
     // Demonstrate Composite Pattern
     println!("\n==================== Composite Pattern ====================\n");
 
     // Evaluate the expression
-    let variables = HashMap::new();
     println!("Expression: {}", add_expr);
     match add_expr.evaluate(&variables) {
         Ok(result) => println!("Result: {}", result),
@@ -76,8 +81,16 @@ fn main() {
         Err(e) => println!("Error: {}", e),
     }
 
+    // ================= //
+    // Decorator Pattern //
+    // ================= //
+
     // Demonstrate Decorator Pattern
     println!("\n==================== Decorator Pattern ====================\n");
+
+    // ------- //
+    // Logging //
+    // ------- //
 
     // Create identical expressions for each decorator since we can't clone
 
@@ -101,6 +114,10 @@ fn main() {
         Err(e) => println!("Final error: {}", e),
     }
 
+    // ------ //
+    // Timing //
+    // ------ //
+
     // Create another expression for timing
     let add_for_timing = Box::new(BinaryOperation {
         left: Box::new(NumberExpression { value: 2.0 }),
@@ -121,6 +138,51 @@ fn main() {
         Err(e) => println!("Final error: {}", e),
     }
 
+    // ------------------- //
+    // Stacking Decorators //
+    // ------------------- //
+
+    // Every decorator implements/is an Expression -> we can stack decorators
+
+    // Create another expression for logging and timing
+    let add_for_logging_timing = BinaryOperation {
+        left: Box::new(NumberExpression { value: 2.0 }),
+        right: Box::new(BinaryOperation {
+            left: Box::new(NumberExpression { value: 3.0 }),
+            right: Box::new(NumberExpression { value: 4.0 }),
+            operator: Operator::Multiply,
+        }),
+        operator: Operator::Add,
+    };
+
+    // Create a decorated expression with logging and timing
+    let logging_timing_expr_inner = TimingExpression::new(Box::new(add_for_logging_timing));
+    let logging_timing_expr_outer =
+        LoggingExpression::new(Box::new(logging_timing_expr_inner), Box::new(ConsoleLogger));
+
+    println!("\nEvaluating with logging and timing:");
+    match logging_timing_expr_outer.evaluate(&variables) {
+        Ok(result) => println!("Final result: {}", result),
+        Err(e) => println!("Final error: {}", e),
+    }
+
+    // ------------------------ //
+    // More Stacking Decorators //
+    // ------------------------ //
+
+    print!("\nAn example with more stacking:\n");
+
+    let expr = Box::new(NumberExpression::new(42.0));
+    let cached = Box::new(CachingExpression::new(expr));
+    let validated = Box::new(RangeValidatingExpression::new(cached, 0.0, 100.0));
+    let timed = Box::new(TimingExpression::new(validated));
+    let logged = LoggingExpression::new(timed, Box::new(ConsoleLogger));
+    let _result = logged.evaluate(&variables);
+
+    // ------- //
+    // Caching //
+    // ------- //
+
     // Create another expression for caching
     let add_for_caching = Box::new(BinaryOperation {
         left: Box::new(NumberExpression { value: 2.0 }),
@@ -132,42 +194,12 @@ fn main() {
         operator: Operator::Add,
     });
 
-    // NOTE: stacking decorators
-    // Create another expression for logging and timing
-    let add_for_logging_timing = Box::new(BinaryOperation {
-        left: Box::new(NumberExpression { value: 2.0 }),
-        right: Box::new(BinaryOperation {
-            left: Box::new(NumberExpression { value: 3.0 }),
-            right: Box::new(NumberExpression { value: 4.0 }),
-            operator: Operator::Multiply,
-        }),
-        operator: Operator::Add,
-    });
-
-    // Create a decorated expression with logging and timing
-    // let logging_timing_expr = TimingExpression::new(Box::new(logging_expr));
-    let logging_timing_expr =
-        LoggingExpression::new(Box::new(timing_expr), Box::new(ConsoleLogger));
-
-    println!("\nEvaluating with logging and timing:");
-    match logging_timing_expr.evaluate(&variables) {
-        Ok(result) => println!("Final result: {}", result),
-        Err(e) => println!("Final error: {}", e),
-    }
-
-    print!("\nAn example with more stacking:\n");
-
-    let expr = Box::new(NumberExpression::new(42.0));
-    let cached = Box::new(CachingExpression::new(expr));
-    let validated = Box::new(RangeValidatingExpression::new(cached, 0.0, 100.0));
-    let timed = Box::new(TimingExpression::new(validated));
-    let logged = LoggingExpression::new(timed, Box::new(ConsoleLogger));
-    let result = logged.evaluate(&variables);
-
     // Create a caching decorated expression
     let caching_expr = CachingExpression::new(add_for_caching);
 
     println!("\nEvaluating with caching:");
+
+    // calculate result
     match caching_expr.evaluate(&variables) {
         Ok(result) => println!("Final result: {}", result),
         Err(e) => println!("Final error: {}", e),
@@ -175,12 +207,18 @@ fn main() {
 
     println!();
 
+    // return cached result
     match caching_expr.evaluate(&variables) {
         Ok(result) => println!("Final result: {}", result),
         Err(e) => println!("Final error: {}", e),
     }
 
+    // --------------- //
+    // Range Decorator //
+    // --------------- //
+
     // Create another expression for min,max ranges
+    // Build an expression tree for: 2 + 3 * 4
     let add_for_ranges = Box::new(BinaryOperation {
         left: Box::new(NumberExpression { value: 2.0 }),
         right: Box::new(BinaryOperation {
@@ -191,7 +229,7 @@ fn main() {
         operator: Operator::Add,
     });
 
-    // Create a decorated expression with ranges
+    // Create a decorated expression with ranges (change min, max to see difference)
     let range_expr = RangeValidatingExpression::new(add_for_ranges, 10.0, 20.0);
 
     println!("\nEvaluating with ranges:");
@@ -199,6 +237,10 @@ fn main() {
         Ok(result) => println!("Final result: {}", result),
         Err(e) => println!("Final error: {}", e),
     }
+
+    // =============== //
+    // Adapter Pattern //
+    // =============== //
 
     // Demonstrate Adapter Pattern
     println!("\n==================== Adapter Pattern   ====================\n");

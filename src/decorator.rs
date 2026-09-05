@@ -25,6 +25,7 @@ impl Logger for ConsoleLogger {
 }
 
 // A decorator for expressions that logs evaluation
+// NOTE: the use of generics would be better. No need to change inner and logger during run-time.
 pub struct LoggingExpression {
     inner: Box<dyn Expression>,
     logger: Box<dyn Logger>,
@@ -100,6 +101,11 @@ impl Display for TimingExpression {
 // A decorator that caches evaluation results
 use std::cell::RefCell;
 
+// The CachingExpression introduces an interesting Rust challenge. Caching requires storing a
+// result, which involves mutating internal state (storing the computed result so future calls can
+// return it without re-evaluating), but evaluate takes &self , not &mut self . This is where
+// interior mutability comes in using RefCell.
+
 pub struct CachingExpression {
     inner: Box<dyn Expression>,
     // Using RefCell for interior mutability
@@ -127,7 +133,7 @@ impl Expression for CachingExpression {
         if let Some(result) = *self.last_result.borrow() {
             println!("Returning cached result");
             return Ok(result);
-        } // immutable borrow is dropped here
+        } // immutable borrow is dropped here (borrow scope is obvious and short-lived)
 
         let result = self.inner.evaluate(variables)?;
         // Using interior mutability with RefCell
