@@ -1,4 +1,4 @@
-#![allow(unused)]
+// #![allow(unused)]
 
 // Correct Calculator - Chapter 6
 // Demonstrates structural design patterns
@@ -28,15 +28,13 @@ use decorator::{
 };
 use expression::{BinaryOperation, Expression, FunctionCall, NumberExpression, VariableExpression};
 use facade::CalculatorFacade;
-use std::f64::consts::PI;
 use std::collections::HashMap;
-use token::{Function, Operator, Token};
+use std::f64::consts::PI;
+use token::{Function, Operator};
 
 fn main() {
     println!("Correct Calculator - Chapter 6 - Structural Patterns");
 
-    // Demonstrate Composite Pattern
-    println!("\n==================== Composite Pattern ====================\n");
     // Build an expression tree for: 2 + 3 * 4
     let multiply_expr = Box::new(BinaryOperation {
         left: Box::new(NumberExpression { value: 3.0 }),
@@ -49,6 +47,9 @@ fn main() {
         right: multiply_expr,
         operator: Operator::Add,
     });
+
+    // Demonstrate Composite Pattern
+    println!("\n==================== Composite Pattern ====================\n");
 
     // Evaluate the expression
     let variables = HashMap::new();
@@ -79,6 +80,8 @@ fn main() {
     println!("\n==================== Decorator Pattern ====================\n");
 
     // Create identical expressions for each decorator since we can't clone
+
+    // Build an expression tree for: 2 + 3 * 4
     let add_for_logging = Box::new(BinaryOperation {
         left: Box::new(NumberExpression { value: 2.0 }),
         right: Box::new(BinaryOperation {

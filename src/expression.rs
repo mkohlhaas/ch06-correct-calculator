@@ -10,7 +10,7 @@
 
 use crate::token::{Function, Operator};
 use std::collections::HashMap;
-use std::fmt::{self, Display};
+use std::fmt::{self, Debug, Display};
 
 // Expression trait defining common behavior
 pub trait Expression: Display {
@@ -91,6 +91,16 @@ impl BinaryOperation {
             operator,
         }
     }
+
+    fn operator_symbol(&self) -> &'static str {
+        match self.operator {
+            Operator::Add => "+",
+            Operator::Subtract => "-",
+            Operator::Multiply => "*",
+            Operator::Divide => "/",
+            Operator::Power => "^",
+        }
+    }
 }
 
 // composite node
@@ -136,20 +146,10 @@ impl Display for BinaryOperation {
     }
 }
 
-impl BinaryOperation {
-    fn operator_symbol(&self) -> &'static str {
-        match self.operator {
-            Operator::Add => "+",
-            Operator::Subtract => "-",
-            Operator::Multiply => "*",
-            Operator::Divide => "/",
-            Operator::Power => "^",
-        }
-    }
-}
+impl BinaryOperation {}
 
 // Manual implementation of Debug for BinaryOperation
-impl fmt::Debug for BinaryOperation {
+impl Debug for BinaryOperation {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
@@ -173,7 +173,7 @@ impl FunctionCall {
 }
 
 // Manual implementation of Debug for FunctionCall
-impl fmt::Debug for FunctionCall {
+impl Debug for FunctionCall {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
@@ -439,10 +439,7 @@ mod tests {
         use std::f64::consts::PI;
         let mut vars = empty_vars();
         vars.insert("x".to_string(), PI / 2.0);
-        let expr = FunctionCall::new(
-            Function::Sin,
-            Box::new(VariableExpression::new("x")),
-        );
+        let expr = FunctionCall::new(Function::Sin, Box::new(VariableExpression::new("x")));
         assert!((expr.evaluate(&vars).unwrap() - 1.0).abs() < 1e-10);
     }
 
@@ -450,37 +447,25 @@ mod tests {
     fn test_function_cos() {
         let mut vars = empty_vars();
         vars.insert("x".to_string(), 0.0);
-        let expr = FunctionCall::new(
-            Function::Cos,
-            Box::new(VariableExpression::new("x")),
-        );
+        let expr = FunctionCall::new(Function::Cos, Box::new(VariableExpression::new("x")));
         assert!((expr.evaluate(&vars).unwrap() - 1.0).abs() < 1e-10);
     }
 
     #[test]
     fn test_function_sqrt() {
-        let expr = FunctionCall::new(
-            Function::Sqrt,
-            Box::new(NumberExpression::new(9.0)),
-        );
+        let expr = FunctionCall::new(Function::Sqrt, Box::new(NumberExpression::new(9.0)));
         assert_eq!(expr.evaluate(&empty_vars()).unwrap(), 3.0);
     }
 
     #[test]
     fn test_function_sqrt_negative() {
-        let expr = FunctionCall::new(
-            Function::Sqrt,
-            Box::new(NumberExpression::new(-1.0)),
-        );
+        let expr = FunctionCall::new(Function::Sqrt, Box::new(NumberExpression::new(-1.0)));
         assert!(expr.evaluate(&empty_vars()).is_err());
     }
 
     #[test]
     fn test_function_display() {
-        let expr = FunctionCall::new(
-            Function::Sin,
-            Box::new(VariableExpression::new("x")),
-        );
+        let expr = FunctionCall::new(Function::Sin, Box::new(VariableExpression::new("x")));
         assert_eq!(format!("{}", expr), "sin(x)");
     }
 
