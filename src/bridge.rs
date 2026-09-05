@@ -4,9 +4,9 @@
 
 use crate::expression::Expression;
 
-// /////////////////////////////////// //
+// =================================== //
 // 1. Low-level Implementation (trait) //
-// /////////////////////////////////// //
+// =================================== //
 
 // Implementation for different display formats
 pub trait DisplayImplementation {
@@ -15,6 +15,10 @@ pub trait DisplayImplementation {
 }
 
 // Some Low-level Implementations for the Display
+
+// --------------- //
+// Console Display //
+// --------------- //
 
 pub struct ConsoleDisplay;
 impl DisplayImplementation for ConsoleDisplay {
@@ -26,6 +30,10 @@ impl DisplayImplementation for ConsoleDisplay {
         println!("{}", format.replace("{:.10g}", &format!("{:.10}", value)));
     }
 }
+
+// ------------ //
+// HTML Display //
+// ------------ //
 
 pub struct HtmlDisplay;
 impl DisplayImplementation for HtmlDisplay {
@@ -42,6 +50,10 @@ impl DisplayImplementation for HtmlDisplay {
     }
 }
 
+// ------------ //
+// JSON Display //
+// ------------ //
+
 pub struct JsonDisplay;
 impl DisplayImplementation for JsonDisplay {
     fn display_text(&self, text: &str) {
@@ -54,9 +66,9 @@ impl DisplayImplementation for JsonDisplay {
     }
 }
 
-// ///////////////////////////////// //
+// ================================= //
 // 2. High-level Abstraction (trait) //
-// ///////////////////////////////// //
+// ================================= //
 
 // Abstraction for a calculator display
 pub trait Display {
@@ -65,9 +77,9 @@ pub trait Display {
     fn show_expression(&self, expression: &dyn Expression);
 }
 
-// ////////////////////// //
+// ====================== //
 // 3. The Bridge (struct) //
-// ////////////////////// //
+// ====================== //
 
 // Concrete display that uses a specific implementation
 // A. Dynamic Bridge (implementations can be changed during run-time)
@@ -87,9 +99,9 @@ impl CalculatorDisplay {
     }
 }
 
-// ///////////////////////////////////////////////////////// //
+// ========================================================= //
 // 4. Implement High-level Abstraction for the Bridge Struct //
-// ///////////////////////////////////////////////////////// //
+// ========================================================= //
 
 // NOTE: The high-level abstraction uses the low-level implementation
 impl Display for CalculatorDisplay {
@@ -109,13 +121,17 @@ impl Display for CalculatorDisplay {
     }
 }
 
-// More complex bridge example for expression evaluation
+// ======================================================= //
+// A More Complex Bridge Example for Expression Evaluation //
+// ======================================================= //
 
 // NOTE: Looks more like the strategy pattern.
 // "When you encounter this kind of structural similarity in your own code, focus on the design
 // intent rather than trying to classify the pattern definitively."
 
-// 1. Low-level abstract interface for evaluation strategies
+// ========================================================= //
+// 1. Low-level abstract interface for evaluation strategies //
+// ========================================================= //
 
 pub trait EvaluationStrategy {
     fn evaluate(
@@ -125,7 +141,9 @@ pub trait EvaluationStrategy {
     ) -> Result<f64, String>;
 }
 
-// 2. Low-level Implementations
+// ============================ //
+// 2. Low-level Implementations //
+// ============================ //
 
 // Different evaluation strategies (implementors)
 pub struct StandardEvaluator;
@@ -171,15 +189,16 @@ impl EvaluationStrategy for OptimizingEvaluator {
         // Evaluate and cache the result
         let result = expression.evaluate(variables)?;
 
-        // Using RefCell for thread-safe interior mutability
-        // NOTE: RefCell is NOT thread-safe!
+        // Using RefCell for interior mutability (not thread-safe, Arc would be)
         self.cache.borrow_mut().insert(key, result);
 
         Ok(result)
     }
 }
 
-// 3. The Bridge (this time no high-level abstraction layer)
+// ========================================================= //
+// 3. The Bridge (this time no high-level abstraction layer) //
+// ========================================================= //
 
 pub struct Evaluator {
     strategy: Box<dyn EvaluationStrategy>,

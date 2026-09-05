@@ -74,7 +74,16 @@ impl Display for VariableExpression {
 }
 
 // Composite node for binary operations
+//
 // We can't derive Debug and Clone because dyn Expression doesn't implement those traits. NOTE: But maybe should!
+//
+// NOTE: We use Box < dyn Expression > rather than generic type parameters because generics would make
+// each BinaryOperation monomorphic (specialized to one concrete type) over its children's types. A
+// BinaryOperation < NumberExpression, NumberExpression > would be a different type from
+// BinaryOperation < NumberExpression, VariableExpression > , preventing us from building
+// heterogeneous trees where the left child is a NumberExpression and the right child is another
+// BinaryOperation .
+
 pub struct BinaryOperation {
     // NOTE: trait objects provide the dynamic dispatch needed for recursive, heterogeneous tree structures
     // Recursive structures in Rust require heap allocation.
@@ -160,7 +169,7 @@ impl Debug for BinaryOperation {
 }
 
 // Composite node for function calls
-// We can't derive Debug and Clone because dyn Expression doesn't implement those traits
+// We can't derive Debug and Clone because dyn Expression doesn't implement these traits
 pub struct FunctionCall {
     pub function: Function,
     pub argument: Box<dyn Expression>,

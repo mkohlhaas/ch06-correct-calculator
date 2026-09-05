@@ -33,7 +33,9 @@ use std::f64::consts::PI;
 use token::{Function, Operator};
 
 fn main() {
+    println!("====================================================");
     println!("Correct Calculator - Chapter 6 - Structural Patterns");
+    println!("====================================================");
 
     // Build an expression tree for: 2 + 3 * 4
     let multiply_expr = Box::new(BinaryOperation {
@@ -257,6 +259,10 @@ fn main() {
     println!("Standard sin(π/2): {}", std_ops.sin(PI / 2.0));
     println!("External sin(90°): {}", ext_ops.sin(90.0));
 
+    // ============== //
+    // Facade Pattern //
+    // ============== //
+
     // Demonstrate Facade Pattern
     println!("\n==================== Facade Pattern    ====================\n");
 
@@ -280,6 +286,17 @@ fn main() {
         Ok((x1, x2)) => println!("Quadratic roots: {} and {}", x1, x2),
         Err(e) => println!("Error: {}", e),
     }
+    println!(
+        "Pythagorean: {}",
+        calculator.calculate_pythagorean(4.0, 5.0)
+    );
+
+    println!("Answer/Result: {}", calculator.get_variable("ans").unwrap());
+    println!("History: {:?}", calculator.get_history());
+
+    // ============== //
+    // Bridge Pattern //
+    // ============== //
 
     // Demonstrate Bridge Pattern
     println!("\n==================== Bridge Pattern    ====================\n");

@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 // token.rs - Core token types and factory methods
 
 // Number formats
@@ -166,24 +168,53 @@ mod tests {
     #[test]
     fn test_token_from_str_scientific() {
         let tok = Token::from_str("1e5").unwrap();
-        assert!(matches!(tok, Token::Number(Number { value, format: NumberFormat::Scientific }) if value == 1e5));
+        assert!(
+            matches!(tok, Token::Number(Number { value, format: NumberFormat::Scientific }) if value == 1e5)
+        );
     }
 
     #[test]
     fn test_token_from_str_operators() {
-        assert!(matches!(Token::from_str("+").unwrap(), Token::Operator(Operator::Add)));
-        assert!(matches!(Token::from_str("-").unwrap(), Token::Operator(Operator::Subtract)));
-        assert!(matches!(Token::from_str("*").unwrap(), Token::Operator(Operator::Multiply)));
-        assert!(matches!(Token::from_str("/").unwrap(), Token::Operator(Operator::Divide)));
-        assert!(matches!(Token::from_str("^").unwrap(), Token::Operator(Operator::Power)));
+        assert!(matches!(
+            Token::from_str("+").unwrap(),
+            Token::Operator(Operator::Add)
+        ));
+        assert!(matches!(
+            Token::from_str("-").unwrap(),
+            Token::Operator(Operator::Subtract)
+        ));
+        assert!(matches!(
+            Token::from_str("*").unwrap(),
+            Token::Operator(Operator::Multiply)
+        ));
+        assert!(matches!(
+            Token::from_str("/").unwrap(),
+            Token::Operator(Operator::Divide)
+        ));
+        assert!(matches!(
+            Token::from_str("^").unwrap(),
+            Token::Operator(Operator::Power)
+        ));
     }
 
     #[test]
     fn test_token_from_str_functions() {
-        assert!(matches!(Token::from_str("sin").unwrap(), Token::Function(Function::Sin)));
-        assert!(matches!(Token::from_str("cos").unwrap(), Token::Function(Function::Cos)));
-        assert!(matches!(Token::from_str("tan").unwrap(), Token::Function(Function::Tan)));
-        assert!(matches!(Token::from_str("sqrt").unwrap(), Token::Function(Function::Sqrt)));
+        assert!(matches!(
+            Token::from_str("sin").unwrap(),
+            Token::Function(Function::Sin)
+        ));
+        assert!(matches!(
+            Token::from_str("cos").unwrap(),
+            Token::Function(Function::Cos)
+        ));
+        assert!(matches!(
+            Token::from_str("tan").unwrap(),
+            Token::Function(Function::Tan)
+        ));
+        assert!(matches!(
+            Token::from_str("sqrt").unwrap(),
+            Token::Function(Function::Sqrt)
+        ));
     }
 
     #[test]
@@ -213,7 +244,13 @@ mod tests {
         assert!(matches!(t, Token::Number(n) if n.value == 3.14));
 
         let t = Token::scientific_number(100.0);
-        assert!(matches!(t, Token::Number(Number { format: NumberFormat::Scientific, .. })));
+        assert!(matches!(
+            t,
+            Token::Number(Number {
+                format: NumberFormat::Scientific,
+                ..
+            })
+        ));
 
         let t = Token::operator(Operator::Add);
         assert!(matches!(t, Token::Operator(Operator::Add)));

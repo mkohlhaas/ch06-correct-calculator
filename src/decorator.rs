@@ -26,6 +26,7 @@ impl Logger for ConsoleLogger {
 
 // A decorator for expressions that logs evaluation
 // NOTE: the use of generics would be better. No need to change inner and logger during run-time.
+// On the other hand it allows to stack decorators dynamically at runtime!
 pub struct LoggingExpression {
     inner: Box<dyn Expression>,
     logger: Box<dyn Logger>,

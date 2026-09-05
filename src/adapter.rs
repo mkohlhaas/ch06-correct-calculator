@@ -8,13 +8,20 @@ use std::collections::HashMap;
 use std::f64::consts::PI;
 use std::fmt::{self, Display};
 
-// Interface for scientific calculations
+// ============================================= //
+// Uniform Interface for Scientific Calculations //
+// ============================================= //
+
 pub trait ScientificOperations {
     fn sin(&self, angle: f64) -> f64;
     fn cos(&self, angle: f64) -> f64;
     fn tan(&self, angle: f64) -> f64;
     fn log(&self, value: f64, base: f64) -> Result<f64, String>;
 }
+
+// 1. Far-fetched example: StandardScientificOperations and ExternalLibraryAdapter are identical
+// 2. Better example would be a StandardScientificOperations using an external library.
+// 3. From/Into traits would be cleaner than a full adapter struct for converting degrees and radians.
 
 // Standard implementation using Rust's math functions
 pub struct StandardScientificOperations {
@@ -57,12 +64,12 @@ impl ScientificOperations for StandardScientificOperations {
     }
 }
 
-// //////////////////////////////////////////////// //
+// ================================================ //
 // Adapter for a hypothetical external math library //
-// //////////////////////////////////////////////// //
+// ================================================ //
 
 pub struct ExternalLibraryAdapter {
-    // NOTE: In a real implementation, this would contain a reference to the external library
+    // In a real implementation, this would contain a reference to the external library
     angle_mode: AngleMode,
 }
 
@@ -71,9 +78,9 @@ impl ExternalLibraryAdapter {
         Self { angle_mode }
     }
 
-    // NOTE: This would be a helper that converts to the format needed by the external library
+    // This would be a helper that converts to the format needed by the external library
+    // Returns radians
     fn convert_angle(&self, angle: f64) -> f64 {
-        // NOTE: The external library only work with radians
         match self.angle_mode {
             AngleMode::Radians => angle,
             AngleMode::Degrees => angle * PI / 180.0,
@@ -114,9 +121,9 @@ impl ScientificOperations for ExternalLibraryAdapter {
     }
 }
 
-// ////////////////////////////////////////////// //
+// ============================================== //
 // Adapters to connect different expression types //
-// ////////////////////////////////////////////// //
+// ============================================== //
 
 // Adapter for using ScientificOperations with Expression
 pub struct ScientificFunctionExpression {
@@ -146,7 +153,6 @@ impl ScientificFunctionExpression {
         arg_expression: Box<dyn Expression>,
     ) -> Self {
         let operation = Box::new(move |angle: f64| scientific_ops.cos(angle));
-
         Self {
             operation,
             arg_expression,
@@ -245,6 +251,10 @@ impl ScientificOperations for ExpressionScientificAdapter {
         self.log_expr.evaluate(&variables)
     }
 }
+
+// ===== //
+// Tests //
+// ===== //
 
 #[cfg(test)]
 mod tests {
