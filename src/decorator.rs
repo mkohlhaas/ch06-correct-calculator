@@ -7,6 +7,10 @@ use std::collections::HashMap;
 use std::fmt::{self, Display};
 use std::time::Instant;
 
+// =================== //
+// 1. Logger Decorator //
+// =================== //
+
 // Logger trait for logging operations
 pub trait Logger {
     fn log(&self, message: &str);
@@ -34,8 +38,7 @@ impl LoggingExpression {
 
 impl Expression for LoggingExpression {
     fn evaluate(&self, variables: &HashMap<String, f64>) -> Result<f64, String> {
-        self.logger
-            .log(&format!("Evaluating: {}", self.inner));
+        self.logger.log(&format!("Evaluating: {}", self.inner));
         let result = self.inner.evaluate(variables);
         match &result {
             Ok(value) => self.logger.log(&format!("Result: {}", value)),
@@ -54,6 +57,10 @@ impl Display for LoggingExpression {
         write!(f, "{}", self.inner)
     }
 }
+
+// ================== //
+// 2. Timer Decorator //
+// ================== //
 
 // A decorator that times evaluation
 pub struct TimingExpression {
@@ -85,6 +92,10 @@ impl Display for TimingExpression {
         write!(f, "{}", self.inner)
     }
 }
+
+// ==================== //
+// 3. Caching Decorator //
+// ==================== //
 
 // A decorator that caches evaluation results
 use std::cell::RefCell;
@@ -137,6 +148,10 @@ impl Display for CachingExpression {
     }
 }
 
+// ============================ //
+// 4. Range Validator Decorator //
+// ============================ //
+
 // A decorator that validates the result range
 pub struct RangeValidatingExpression {
     inner: Box<dyn Expression>,
@@ -184,6 +199,10 @@ impl Display for RangeValidatingExpression {
         )
     }
 }
+
+// ===== //
+// Tests //
+// ===== //
 
 #[cfg(test)]
 mod tests {
